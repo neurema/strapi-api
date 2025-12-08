@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const config = require('./config');
+console.log("LOADING ROUTES...");
 const routes = require('./routes');
+console.log("ROUTES LOADED");
 
 const app = express();
 
@@ -16,7 +18,6 @@ app.use('/api', routes);
 app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'Middleware Server is running' });
 });
-
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
