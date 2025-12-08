@@ -27,6 +27,7 @@ class ProfileController extends BaseController {
 
     async createProfile(req, res) {
         try {
+            console.log('createProfile body:', req.body);
             // Dart sends body: { data: { ... } }
             // We expect the client (middleware caller) to pass the raw data or the structured data.
             // Following previous pattern, we normally expect specific fields in req.body and construct the Strapi payload here.

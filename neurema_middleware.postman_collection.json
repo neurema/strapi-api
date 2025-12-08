@@ -1,0 +1,495 @@
+{
+    "info": {
+        "_postman_id": "neurema-middleware-api",
+        "name": "Neurema Middleware API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "User API",
+            "item": [
+                {
+                    "name": "Get User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{user_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/get?email={{test_email}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "get"
+                            ],
+                            "query": [
+                                {
+                                    "key": "email",
+                                    "value": "{{test_email}}"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete User",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{user_api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/delete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "delete"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{user_api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"password123\",\n    \"name\": \"Test User\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/create",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "create"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"{{test_email}}\",\n    \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Profile API",
+            "item": [
+                {
+                    "name": "Get Profiles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/profile/get?email={{test_email}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "profile",
+                                "get"
+                            ],
+                            "query": [
+                                {
+                                    "key": "email",
+                                    "value": "{{test_email}}"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Profile",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"examType\": \"NEET-PG\",\n    \"examDate\": \"2025-12-31T00:00:00.000Z\",\n    \"studyMode\": \"Normal\",\n    \"isInstituteLinked\": false,\n    \"dailyTopicLimit\": 5,\n    \"defaultSessionDuration\": 30,\n    \"userId\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/profile/create",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "profile",
+                                "create"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"studyMode\": \"Intense\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/profile/update/:profileId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "profile",
+                                "update",
+                                ":profileId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "profileId",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Profile",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/profile/delete/:profileId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "profile",
+                                "delete",
+                                ":profileId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "profileId",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Subject API",
+            "item": [
+                {
+                    "name": "Get Subjects",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/subject/get?exam=NEET-PG",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "subject",
+                                "get"
+                            ],
+                            "query": [
+                                {
+                                    "key": "exam",
+                                    "value": "NEET-PG"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Session API",
+            "item": [
+                {
+                    "name": "Find Or Create Session",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"userTopicId\": 1,\n    \"scheduledFor\": \"2025-01-01T10:00:00.000Z\",\n    \"isPaused\": false,\n    \"timeTakenForRevision\": 0,\n    \"timeTakenForActivity\": 0,\n    \"timeAllotted\": 60,\n    \"scoreActivity\": \"0\",\n    \"difficultyLevel\": \"Medium\",\n    \"stayTopicId\": \"1\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/session/find-or-create",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "session",
+                                "find-or-create"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Sessions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/session/get?userTopicId=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "session",
+                                "get"
+                            ],
+                            "query": [
+                                {
+                                    "key": "userTopicId",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "UserTopic API",
+            "item": [
+                {
+                    "name": "Find Or Create UserTopic",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"topicId\": 1,\n    \"profileId\": 1,\n    \"memoryLocation\": \"Box 1\",\n    \"lastSession\": \"2025-01-01T00:00:00.000Z\",\n    \"nextSession\": \"2025-01-02T00:00:00.000Z\",\n    \"timeTotal\": 100,\n    \"timeRemaining\": 50,\n    \"revisionsDone\": 0\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user-topic/find-or-create",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-topic",
+                                "find-or-create"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get UserTopics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user-topic/get?profileId=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-topic",
+                                "get"
+                            ],
+                            "query": [
+                                {
+                                    "key": "profileId",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete UserTopic",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{content_api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user-topic/delete/:userTopicId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-topic",
+                                "delete",
+                                ":userTopicId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "userTopicId",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "test_email",
+            "value": "test@example.com",
+            "type": "string"
+        },
+        {
+            "key": "user_api_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "content_api_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

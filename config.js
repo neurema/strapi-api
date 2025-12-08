@@ -1,6 +1,6 @@
 
 const config = {
-    strapiUrl: process.env.STRAPI_URL || 'http://localhost:1337',
+    strapiUrl: process.env.STRAPI_URL || 'https://admin.neurema.com',
     userApiToken: process.env.STRAPI_USER_API_TOKEN || '',
     contentApiToken: process.env.STRAPI_CONTENT_API_TOKEN || '',
     port: process.env.PORT || 3000,
