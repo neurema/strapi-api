@@ -11,6 +11,13 @@ class BaseController {
                 'Content-Type': 'application/json',
             },
         });
+
+        // Add logging interceptor
+        this.api.interceptors.request.use(request => {
+            console.log(`[API Call] ${request.method.toUpperCase()} ${request.url}`);
+            console.log(`[API Key] ${request.headers['Authorization']}`);
+            return request;
+        });
     }
 
     handleError(res, error) {
