@@ -46,7 +46,7 @@ class ProfileController extends BaseController {
             const {
                 examType, examDate, studyMode, isInstituteLinked,
                 college, collegeEmail, year, rollNo,
-                dailyTopicLimit, defaultSessionDuration, userId
+                dailyTopicLimit, defaultSessionDuration, userId, vivaCount
             } = req.body;
 
             const payload = {
@@ -61,7 +61,8 @@ class ProfileController extends BaseController {
                     college,
                     collegeEmail,
                     year,
-                    rollNo
+                    rollNo,
+                    vivaCount
                 }
             };
 
@@ -80,7 +81,7 @@ class ProfileController extends BaseController {
             const { profileId } = req.params;
             const {
                 studyMode, isInstituteLinked, college, collegeEmail,
-                year, rollNo, dailyTopicLimit, defaultSessionDuration
+                year, rollNo, dailyTopicLimit, defaultSessionDuration, vivaCount
             } = req.body;
 
             const payload = {
@@ -92,7 +93,8 @@ class ProfileController extends BaseController {
                     year,
                     rollNo,
                     dailyTopicLimit,
-                    defaultSessionDuration
+                    defaultSessionDuration,
+                    vivaCount
                 }
             };
 
