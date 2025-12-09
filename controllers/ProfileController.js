@@ -27,7 +27,7 @@ class ProfileController extends BaseController {
 
     async createProfile(req, res) {
         try {
-            console.log('createProfile body:', req.body);
+            console.log('createProfile raw body:', JSON.stringify(req.body));
             // Dart sends body: { data: { ... } }
             // We expect the client (middleware caller) to pass the raw data or the structured data.
             // Following previous pattern, we normally expect specific fields in req.body and construct the Strapi payload here.
@@ -43,11 +43,14 @@ class ProfileController extends BaseController {
             // Wait, looking at User Create: we destructured name, email, pass and built the payload.
             // Let's do the same here for consistency and "middleware" value add.
 
+            // Handle both flat and nested (standard Strapi) request structures
+            const requestData = req.body.data || req.body;
+
             const {
                 examType, examDate, studyMode, isInstituteLinked,
                 college, collegeEmail, year, rollNo,
-                dailyTopicLimit, defaultSessionDuration, userId, vivaCount
-            } = req.body;
+                dailyTopicLimit, defaultSessionDuration, user, vivaCount
+            } = requestData;
 
             const payload = {
                 data: {
@@ -57,7 +60,7 @@ class ProfileController extends BaseController {
                     isInstituteLinked,
                     dailyTopicLimit,
                     defaultSessionDuration,
-                    user: userId,
+                    user: user,
                     college,
                     collegeEmail,
                     year,
