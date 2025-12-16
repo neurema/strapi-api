@@ -35,10 +35,10 @@ class SubjectController extends BaseController {
 
             // Add ownerProfile filter to the populated topics
             if (ownerProfile) {
-                params['populate[topics][filters][$or][0][ownerProfile][id][$null]'] = 'true';
-                params['populate[topics][filters][$or][1][ownerProfile][id][$eq]'] = ownerProfile;
+                params['populate[topics][filters][$or][0][ownerProfile][documentId][$null]'] = 'true';
+                params['populate[topics][filters][$or][1][ownerProfile][documentId][$eq]'] = ownerProfile;
             } else {
-                params['populate[topics][filters][ownerProfile][id][$null]'] = 'true';
+                params['populate[topics][filters][ownerProfile][documentId][$null]'] = 'true';
             }
 
             const response = await this.api.get('/api/subjects', { params });
