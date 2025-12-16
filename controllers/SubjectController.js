@@ -5,6 +5,17 @@ class SubjectController extends BaseController {
         super('content'); // Uses CONTENT_API_TOKEN
     }
 
+    async getExams(req, res) {
+        try {
+            const params = {
+                'fields[0]': 'name',
+            };
+            const response = await this.api.get('/api/exams', { params });
+            this.handleSuccess(res, response.data);
+        } catch (error) {
+            this.handleError(res, error);
+        }
+    }
     async getSubjects(req, res) {
         try {
             const { exam } = req.query;

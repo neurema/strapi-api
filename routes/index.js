@@ -31,6 +31,7 @@ const SubjectController = require('../controllers/SubjectController');
 const subjectController = new SubjectController();
 
 router.get('/subject/get', (req, res) => subjectController.getSubjects(req, res));
+router.get('/exams/get', (req, res) => subjectController.getExams(req, res));
 
 // Session Routes
 const SessionController = require('../controllers/SessionController');

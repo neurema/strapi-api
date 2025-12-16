@@ -1,9 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const config = require('./config');
-console.log("LOADING ROUTES...");
 const routes = require('./routes');
-console.log("ROUTES LOADED");
 
 const app = express();
 
@@ -13,7 +11,6 @@ app.use(express.json());
 
 // Routes
 app.use('/api', routes);
-console.log("PORT TYPE:", typeof config.port, config.port);
 // Base route for health check
 app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'Middleware Server is running' });
