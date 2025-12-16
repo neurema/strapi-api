@@ -48,4 +48,11 @@ router.post('/user-topic/find-or-create', (req, res) => userTopicController.find
 router.get('/user-topic/get', (req, res) => userTopicController.getUserTopics(req, res));
 router.delete('/user-topic/delete/:userTopicId', (req, res) => userTopicController.deleteUserTopic(req, res));
 
+// Topic Routes
+const TopicController = require('../controllers/TopicController');
+const topicController = new TopicController();
+
+router.post('/topic/create', (req, res) => topicController.createTopic(req, res));
+router.delete('/topic/delete/:documentId', (req, res) => topicController.deleteTopic(req, res));
+
 module.exports = router;

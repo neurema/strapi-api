@@ -18,12 +18,12 @@ class SubjectController extends BaseController {
     }
     async getSubjects(req, res) {
         try {
-            const { exam } = req.query;
+            const { exam, ownerProfile } = req.query;
             if (!exam) {
                 return res.status(400).json({ error: 'Exam query parameter is required' });
             }
 
-            // Constructing the Strapi query parameters exactly as the Dart code did
+            // Constructing the Strapi query parameters
             const params = {
                 'fields[0]': 'name',
                 'filters[exams][name][$eq]': exam,
@@ -32,6 +32,14 @@ class SubjectController extends BaseController {
                 'populate[exams][fields][0]': 'name',
                 'populate[exams][filters][name][$eq]': exam,
             };
+
+            // Add ownerProfile filter to the populated topics
+            if (ownerProfile) {
+                params['populate[topics][filters][$or][0][ownerProfile][id][$null]'] = 'true';
+                params['populate[topics][filters][$or][1][ownerProfile][id][$eq]'] = ownerProfile;
+            } else {
+                params['populate[topics][filters][ownerProfile][id][$null]'] = 'true';
+            }
 
             const response = await this.api.get('/api/subjects', { params });
             this.handleSuccess(res, response.data);
