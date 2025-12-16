@@ -51,10 +51,10 @@ class UserTopicController extends BaseController {
             Object.keys(payload.data).forEach(key => payload.data[key] === undefined && delete payload.data[key]);
 
             const createResponse = await this.api.post('/api/user-topics', payload);
-            this.handleSuccess(res, createResponse.data);
+            return this.handleSuccess(res, createResponse.data);
 
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -86,9 +86,9 @@ class UserTopicController extends BaseController {
             };
 
             const response = await this.api.get('/api/user-topics', { params });
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -96,9 +96,9 @@ class UserTopicController extends BaseController {
         try {
             const { userTopicId } = req.params;
             const response = await this.api.delete(`/api/user-topics/${userTopicId}`);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 }

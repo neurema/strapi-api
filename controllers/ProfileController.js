@@ -19,9 +19,9 @@ class ProfileController extends BaseController {
                     'filters[user][email][$eq]': email
                 }
             });
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -73,9 +73,9 @@ class ProfileController extends BaseController {
             Object.keys(payload.data).forEach(key => payload.data[key] === undefined && delete payload.data[key]);
 
             const response = await this.api.post('/api/profiles', payload);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -102,9 +102,9 @@ class ProfileController extends BaseController {
             };
 
             const response = await this.api.put(`/api/profiles/${profileId}`, payload);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -114,9 +114,9 @@ class ProfileController extends BaseController {
             const response = await this.api.delete(`/api/profiles/${profileId}`);
             // Strapi delete returns the deleted object or simple confirmation.
             // Dart expects 200 or 204.
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 }

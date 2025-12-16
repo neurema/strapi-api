@@ -9,9 +9,9 @@ class ContentController extends BaseController {
         try {
             // Example: Fetch articles from Strapi
             const response = await this.api.get('/api/articles?populate=*');
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -19,9 +19,9 @@ class ContentController extends BaseController {
         try {
             const { id } = req.params;
             const response = await this.api.get(`/api/categories/${id}?populate=*`);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 }

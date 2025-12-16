@@ -51,10 +51,10 @@ class SessionController extends BaseController {
             Object.keys(payload.data).forEach(key => payload.data[key] === undefined && delete payload.data[key]);
 
             const createResponse = await this.api.post('/api/study-sessions', payload);
-            this.handleSuccess(res, createResponse.data);
+            return this.handleSuccess(res, createResponse.data);
 
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -81,9 +81,9 @@ class SessionController extends BaseController {
             };
 
             const response = await this.api.get('/api/study-sessions', { params });
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 }

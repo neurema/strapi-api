@@ -26,9 +26,9 @@ class TopicController extends BaseController {
             Object.keys(payload.data).forEach(key => payload.data[key] === undefined && delete payload.data[key]);
 
             const response = await this.api.post('/api/topics', payload);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -40,9 +40,9 @@ class TopicController extends BaseController {
             }
 
             const response = await this.api.delete(`/api/topics/${documentId}`);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 }

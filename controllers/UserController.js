@@ -17,9 +17,9 @@ class UserController extends BaseController {
                     'filters[$and][0][email][$eq]': email
                 }
             });
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -45,10 +45,10 @@ class UserController extends BaseController {
 
             // 2. Delete User
             const deleteResponse = await this.api.delete(`/api/users/${userId}`);
-            this.handleSuccess(res, deleteResponse.data);
+            return this.handleSuccess(res, deleteResponse.data);
 
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -64,9 +64,9 @@ class UserController extends BaseController {
                 name
             };
             const response = await this.api.post('/api/auth/local/register', payload);
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
@@ -86,9 +86,9 @@ class UserController extends BaseController {
                     Authorization: '' // unset the bearer token for this request
                 }
             });
-            this.handleSuccess(res, response.data);
+            return this.handleSuccess(res, response.data);
         } catch (error) {
-            this.handleError(res, error);
+            return this.handleError(res, error);
         }
     }
 
