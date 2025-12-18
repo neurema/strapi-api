@@ -67,13 +67,7 @@ class SessionController extends BaseController {
                     timeAllotted,
                     scoreActivity,
                     difficultyLevel,
-
                     user_topic: userTopicId,
-
-                    // ✅ canonical
-                    id: stayId,
-
-                    // 🟡 optional legacy field
                     stayTopicId: stayId,
                 },
             };
