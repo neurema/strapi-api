@@ -55,4 +55,11 @@ const topicController = new TopicController();
 router.post('/topic/create', (req, res) => topicController.createTopic(req, res));
 router.delete('/topic/delete/:documentId', (req, res) => topicController.deleteTopic(req, res));
 
+// Analysis Routes
+const AnalysisController = require('../controllers/AnalysisController');
+const analysisController = new AnalysisController();
+
+router.post('/analysis/create', (req, res) => analysisController.createAnalysis(req, res));
+router.get('/analysis/get', (req, res) => analysisController.getAnalyses(req, res));
+
 module.exports = router;
