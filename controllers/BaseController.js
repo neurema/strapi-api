@@ -3,53 +3,55 @@ const http = require('http');
 const https = require('https');
 const config = require('../config');
 
-const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 100, maxFreeSockets: 10 });
-const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 100, maxFreeSockets: 10 });
+// 1. SHARED AGENTS (Throttled for Stability)
+// We limit maxSockets to 25. This means even if you send 2000 requests, 
+// only 25 hit Strapi at once. The rest wait in line safely.
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 25, maxFreeSockets: 10 });
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 25, maxFreeSockets: 10 });
 
-const instances = {
-    user: createAxiosInstance(config.userApiToken),
-    content: createAxiosInstance(config.contentApiToken)
-};
+// 2. SHARED AXIOS INSTANCES
+const instances = {};
 
-function createAxiosInstance(token) {
+function getAxiosInstance(token, tokenType) {
+    // Return existing instance if created
+    if (instances[tokenType]) return instances[tokenType];
+
+    // Create new instance
     const instance = axios.create({
-        baseURL: config.strapiUrl,
-        timeout: 15000,
-        httpAgent,  // Use the shared agent
-        httpsAgent, // Use the shared agent
+        // Use 127.0.0.1 to avoid Windows localhost DNS lookup lag
+        baseURL: config.strapiUrl.replace('localhost', '127.0.0.1'),
+        timeout: 60000, // 60s timeout (since requests might queue up)
+        httpAgent, 
+        httpsAgent,
         headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
     });
 
-    // Attach Interceptors only ONCE
-    instance.interceptors.request.use(
-        (request) => {
-            // Only log in dev/test to save CPU in prod
-            if (process.env.NODE_ENV !== 'production') {
-                console.log(`[STRAPI → REQUEST] ${request.method?.toUpperCase()} ${request.url}`);
-            }
-            return request;
-        },
-        (error) => Promise.reject(error)
-    );
-
+    // ERROR INTERCEPTOR ONLY (Removed console.log request interceptor for speed)
     instance.interceptors.response.use(
         (response) => response,
         (error) => {
-            console.error('[STRAPI → ERROR]', error.response?.status, error.message);
+            // Only log status code to keep console clean
+            const status = error.response?.status || 'UNKNOWN';
+            const url = error.config?.url || 'UNKNOWN';
+            // Only log if it's NOT a 404 (404s are expected in findOrCreate)
+            if (status !== 404) {
+                console.error(`[STRAPI ERROR] ${status} on ${url}`);
+            }
             return Promise.reject(error);
         }
     );
 
+    instances[tokenType] = instance;
     return instance;
 }
 
 class BaseController {
     constructor(tokenType = 'content') {
-        // 3. Assign the PRE-CREATED instance instead of making a new one
-        this.api = tokenType === 'user' ? instances.user : instances.content;
+        const token = tokenType === 'user' ? config.userApiToken : config.contentApiToken;
+        this.api = getAxiosInstance(token, tokenType);
     }
 
     handleSuccess(res, data, status = 200) {
