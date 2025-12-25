@@ -13,12 +13,17 @@ class ProfileController extends BaseController {
             }
 
             // Dart: 'filters[user][email][$eq]': email
-            const response = await this.api.get('/api/profiles', {
-                params: {
-                    'populate': '*',
-                    'filters[user][email][$eq]': email
-                }
-            });
+            const params = {
+                'populate': '*',
+                'filters[user][email][$eq]': email
+            }
+
+            const { lastSync } = req.query;
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
+
+            const response = await this.api.get('/api/profiles', { params });
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);

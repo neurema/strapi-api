@@ -58,6 +58,12 @@ class AnalysisController extends BaseController {
                 params['filters[study_session][id][$eq]'] = sessionId;
             }
 
+            // Support lastSync
+            const { lastSync } = req.query;
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
+
             const response = await this.api.get('/api/analyses', { params });
 
             return this.handleSuccess(res, response.data);

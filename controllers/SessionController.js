@@ -22,6 +22,9 @@ class SessionController extends BaseController {
 
                 // OPTIONAL: backward compatibility
                 stayTopicId,
+
+                // OPTIONAL: sync param
+                lastSync
             } = req.body;
 
             // 🔒 Hard validation
@@ -46,6 +49,11 @@ class SessionController extends BaseController {
                 'filters[scheduledFor][$eq]': scheduledFor,
                 'pagination[limit]': '1',
             };
+
+            const actualLastSync = lastSync || req.query.lastSync;
+            if (actualLastSync) {
+                findParams['filters[updatedAt][$gt]'] = actualLastSync;
+            }
 
             const findResponse = await this.api.get(
                 '/api/study-sessions',
@@ -115,6 +123,11 @@ class SessionController extends BaseController {
 
                 'pagination[limit]': '5000',
             };
+
+            const { lastSync } = req.query;
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
 
             const response = await this.api.get(
                 '/api/study-sessions',

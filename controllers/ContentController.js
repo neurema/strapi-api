@@ -7,8 +7,17 @@ class ContentController extends BaseController {
 
     async getArticles(req, res) {
         try {
+            const { lastSync } = req.query;
+            const params = {
+                populate: '*'
+            };
+
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
+
             // Example: Fetch articles from Strapi
-            const response = await this.api.get('/api/articles?populate=*');
+            const response = await this.api.get('/api/articles', { params });
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);
@@ -18,7 +27,16 @@ class ContentController extends BaseController {
     async getCategory(req, res) {
         try {
             const { id } = req.params;
-            const response = await this.api.get(`/api/categories/${id}?populate=*`);
+            const { lastSync } = req.query;
+            const params = {
+                populate: '*'
+            };
+
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
+
+            const response = await this.api.get(`/api/categories/${id}`, { params });
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);

@@ -10,7 +10,8 @@ class UserTopicController extends BaseController {
             const {
                 memoryLocation, lastSession, nextSession,
                 timeTotal, timeRemaining, revisionsDone,
-                topicId, profileId
+                topicId, profileId,
+                lastSync
             } = req.body;
 
             if (!topicId || !profileId) {
@@ -24,6 +25,11 @@ class UserTopicController extends BaseController {
                 'filters[profile][id][$eq]': profileId,
                 'pagination[limit]': '1',
             };
+
+            const actualLastSync = lastSync || req.query.lastSync;
+            if (actualLastSync) {
+                findParams['filters[updatedAt][$gt]'] = actualLastSync;
+            }
 
             const findResponse = await this.api.get('/api/user-topics', { params: findParams });
             const foundData = findResponse.data;
@@ -84,6 +90,11 @@ class UserTopicController extends BaseController {
                 'filters[profile][documentId][$eq]': profileId,
                 'pagination[limit]': '5000',
             };
+
+            const { lastSync } = req.query;
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
 
             const response = await this.api.get('/api/user-topics', { params });
             return this.handleSuccess(res, response.data);

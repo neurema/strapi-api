@@ -7,15 +7,20 @@ class UserController extends BaseController {
 
     async getUser(req, res) {
         try {
-            const { email } = req.query;
+            const { email, lastSync } = req.query;
             if (!email) {
                 return res.status(400).json({ error: 'Email query parameter is required' });
             }
             // Strapi filter syntax: filters[$and][0][email][$eq]=value
+            const params = {
+                'filters[$and][0][email][$eq]': email
+            };
+            if (lastSync) {
+                params['filters[updatedAt][$gt]'] = lastSync;
+            }
+
             const response = await this.api.get('/api/users', {
-                params: {
-                    'filters[$and][0][email][$eq]': email
-                }
+                params
             });
             return this.handleSuccess(res, response.data);
         } catch (error) {
