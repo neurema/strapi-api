@@ -97,6 +97,38 @@ class UserController extends BaseController {
         }
     }
 
+
+    async updateUser(req, res) {
+        try {
+            const { email, name } = req.body;
+            if (!email) {
+                return res.status(400).json({ error: 'Email is required' });
+            }
+
+            // 1. Get User ID
+            const userResponse = await this.api.get('/api/users', {
+                params: {
+                    'filters[$and][0][email][$eq]': email
+                }
+            });
+
+            const users = userResponse.data;
+            if (!users || users.length === 0) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            const userId = users[0].id;
+
+            // 2. Update User
+            const updateResponse = await this.api.put(`/api/users/${userId}`, {
+                name
+            });
+            return this.handleSuccess(res, updateResponse.data);
+
+        } catch (error) {
+            return this.handleError(res, error);
+        }
+    }
+
 }
 
 module.exports = UserController;

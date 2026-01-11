@@ -15,6 +15,7 @@ const userController = new UserController();
 router.get('/user/get', (req, res) => userController.getUser(req, res));
 router.delete('/user/delete', (req, res) => userController.deleteUser(req, res));
 router.post('/user/create', (req, res) => userController.createUser(req, res));
+router.put('/user/update', (req, res) => userController.updateUser(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 
 // Profile Routes
