@@ -87,7 +87,7 @@ class UserTopicController extends BaseController {
                 'populate[topic][fields][0]': 'name',
                 'populate[topic][fields][1]': 'section',
                 'populate[sessions][fields][0]': 'id',
-                'filters[profile][documentId][$eq]': profileId,
+                'filters[profile][id][$eq]': profileId,
                 'pagination[limit]': '5000',
             };
 
