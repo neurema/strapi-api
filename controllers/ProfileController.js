@@ -162,14 +162,24 @@ class ProfileController extends BaseController {
             }
 
             // Auto-link Classroom based on classCode if updating
+            const { classOperation } = req.body; // 'add' or 'remove'
             let linkedClassroomName = null;
             if (classCode) {
                 const classroom = await this._findClassroomByCode(classCode);
                 if (classroom) {
-                    payload.data.classroom = classroom.id;
-                    linkedClassroomName = classroom.name;
-                    console.log(`[ProfileController] Auto-linked to classroom: ${classroom.name} (ID: ${classroom.id})`);
+                    if (classOperation === 'remove') {
+                        payload.data.classroom = { disconnect: [classroom.id] };
+                        console.log(`[ProfileController] Unlinking classroom: ${classroom.name} (ID: ${classroom.id})`);
+                    } else {
+                        // Default to connect (add)
+                        payload.data.classroom = { connect: [classroom.id] };
+                        linkedClassroomName = classroom.name;
+                        console.log(`[ProfileController] Auto-linking (connect) classroom: ${classroom.name} (ID: ${classroom.id})`);
+                    }
                 }
+            } else if (classCode === "") {
+                // Keep the "clear all" logic if explicitly sent empty string, just in case
+                payload.data.classroom = null;
             }
 
             console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
