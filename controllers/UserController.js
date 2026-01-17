@@ -24,6 +24,7 @@ class UserController extends BaseController {
                 params['populate'] = req.query.populate;
             }
 
+
             const response = await this.api.get('/api/users', {
                 params
             });
@@ -74,6 +75,31 @@ class UserController extends BaseController {
                 name
             };
             const response = await this.api.post('/api/auth/local/register', payload);
+            return this.handleSuccess(res, response.data);
+        } catch (error) {
+            return this.handleError(res, error);
+        }
+    }
+
+    async getMe(req, res) {
+        try {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).json({ error: 'No authorization header provided' });
+            }
+
+            const params = {};
+            if (req.query.populate) {
+                params['populate'] = req.query.populate;
+            }
+
+            // We need to use the token from the request, not the configured API token
+            const response = await this.api.get('/api/users/me', {
+                headers: {
+                    Authorization: authHeader
+                },
+                params
+            });
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);

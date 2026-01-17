@@ -34,12 +34,24 @@ class TopicController extends BaseController {
 
     async deleteTopic(req, res) {
         try {
-            const { documentId } = req.params;
-            if (!documentId) {
-                return res.status(400).json({ error: 'Topic Document ID is required' });
-            }
-
             const response = await this.api.delete(`/api/topics/${documentId}`);
+            return this.handleSuccess(res, response.data);
+        } catch (error) {
+            return this.handleError(res, error);
+        }
+    }
+
+    async getTopics(req, res) {
+        try {
+            const { subject, name } = req.query;
+            const params = {
+                'populate': '*'
+            };
+
+            if (subject) params['filters[subject][$eq]'] = subject;
+            if (name) params['filters[name][$contains]'] = name;
+
+            const response = await this.api.get('/api/topics', { params });
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);

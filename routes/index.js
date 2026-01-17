@@ -16,6 +16,7 @@ router.get('/user/get', (req, res) => userController.getUser(req, res));
 router.delete('/user/delete', (req, res) => userController.deleteUser(req, res));
 router.post('/user/create', (req, res) => userController.createUser(req, res));
 router.put('/user/update', (req, res) => userController.updateUser(req, res));
+router.get('/user/me', (req, res) => userController.getMe(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 
 // Profile Routes
@@ -32,7 +33,7 @@ const SubjectController = require('../controllers/SubjectController');
 const subjectController = new SubjectController();
 
 router.get('/subject/get', (req, res) => subjectController.getSubjects(req, res));
-router.get('/exams/get', (req, res) => subjectController.getExams(req, res));
+router.get('/exam/get', (req, res) => subjectController.getExams(req, res));
 
 // Session Routes
 const SessionController = require('../controllers/SessionController');
@@ -51,9 +52,12 @@ router.delete('/user-topic/delete/:userTopicId', (req, res) => userTopicControll
 
 // Topic Routes
 const TopicController = require('../controllers/TopicController');
+const TeacherController = require('../controllers/TeacherController');
 const topicController = new TopicController();
+const teacherController = new TeacherController();
 
 router.post('/topic/create', (req, res) => topicController.createTopic(req, res));
+router.get('/topic/get', (req, res) => topicController.getTopics(req, res));
 router.delete('/topic/delete/:documentId', (req, res) => topicController.deleteTopic(req, res));
 
 // Analysis Routes
@@ -62,5 +66,16 @@ const analysisController = new AnalysisController();
 
 router.post('/analysis/create', (req, res) => analysisController.createAnalysis(req, res));
 router.get('/analysis/get', (req, res) => analysisController.getAnalyses(req, res));
+
+// Classroom Routes
+const ClassroomController = require('../controllers/ClassroomController');
+const classroomController = new ClassroomController();
+
+router.get('/classroom/get', (req, res) => classroomController.getClassrooms(req, res));
+router.get('/classroom/by-code/:classCode', (req, res) => classroomController.getByCode(req, res));
+router.post('/classroom/create', (req, res) => classroomController.createClassroom(req, res));
+router.put('/classroom/update/:id', (req, res) => classroomController.updateClassroom(req, res));
+router.post('/teacher/assign-topic', (req, res) => teacherController.assignTopicToClass(req, res));
+router.get('/teacher/topic-stats', (req, res) => teacherController.getTopicStats(req, res));
 
 module.exports = router;
