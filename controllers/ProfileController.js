@@ -54,7 +54,8 @@ class ProfileController extends BaseController {
             const {
                 examType, examDate, studyMode, isInstituteLinked,
                 college, collegeEmail, year, rollNo,
-                dailyTopicLimit, defaultSessionDuration, user, vivaCount
+                dailyTopicLimit, defaultSessionDuration, user, vivaCount,
+                classCode // Extract classCode from request
             } = requestData;
 
             const payload = {
@@ -91,12 +92,27 @@ class ProfileController extends BaseController {
                 }
             }
 
+            // Auto-link Classroom based on classCode
+            let linkedClassroomName = null;
+            if (classCode) {
+                const classroom = await this._findClassroomByCode(classCode);
+                if (classroom) {
+                    payload.data.classroom = classroom.id; // Link relation
+                    linkedClassroomName = classroom.name;
+                    console.log(`[ProfileController] Auto-linked to classroom: ${classroom.name} (ID: ${classroom.id})`);
+                }
+            }
+
             const response = await this.api.post('/api/profiles', payload);
             console.log(`[ProfileController] Create success. ID: ${response.data.data?.id}, DocumentID: ${response.data.data?.documentId}`);
 
             // Ensure college name is in the response if we auto-linked it
             if (linkedCollegeName && response.data && response.data.data) {
                 response.data.data.college = linkedCollegeName;
+            }
+            // Ensure classroom name is in response
+            if (linkedClassroomName && response.data && response.data.data) {
+                response.data.data.classroomName = linkedClassroomName;
             }
 
             return this.handleSuccess(res, response.data);
@@ -110,7 +126,8 @@ class ProfileController extends BaseController {
             const { profileId } = req.params;
             const {
                 studyMode, isInstituteLinked, college, collegeEmail,
-                year, rollNo, dailyTopicLimit, defaultSessionDuration, vivaCount
+                year, rollNo, dailyTopicLimit, defaultSessionDuration, vivaCount,
+                classCode
             } = req.body;
 
             const payload = {
@@ -144,6 +161,17 @@ class ProfileController extends BaseController {
                 }
             }
 
+            // Auto-link Classroom based on classCode if updating
+            let linkedClassroomName = null;
+            if (classCode) {
+                const classroom = await this._findClassroomByCode(classCode);
+                if (classroom) {
+                    payload.data.classroom = classroom.id;
+                    linkedClassroomName = classroom.name;
+                    console.log(`[ProfileController] Auto-linked to classroom: ${classroom.name} (ID: ${classroom.id})`);
+                }
+            }
+
             console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
             const response = await this.api.put(`/api/profiles/${profileId}`, payload);
             console.log(`[ProfileController] Update success: ${response.status}`);
@@ -151,6 +179,10 @@ class ProfileController extends BaseController {
             // Ensure college name is in the response if we auto-linked it
             if (linkedCollegeName && response.data && response.data.data) {
                 response.data.data.college = linkedCollegeName;
+            }
+            // Ensure classroom name is in response
+            if (linkedClassroomName && response.data && response.data.data) {
+                response.data.data.classroomName = linkedClassroomName;
             }
 
             return this.handleSuccess(res, response.data);
@@ -221,6 +253,38 @@ class ProfileController extends BaseController {
                 });
             }
             return null; // Fail silently, don't block profile creation
+        }
+    }
+
+    // Helper to find classroom by classCode
+    async _findClassroomByCode(classCode) {
+        try {
+            if (!classCode) return null;
+
+            console.log(`[ProfileController] Searching for classroom with code: '${classCode}'`);
+            const response = await this.api.get('/api/classrooms', {
+                params: {
+                    'filters[classCode][$eq]': classCode,
+                    'fields[0]': 'id',
+                    'fields[1]': 'name', // Assuming classroom has a name
+                    'fields[2]': 'documentId'
+                }
+            });
+
+            const classrooms = response.data.data;
+            if (classrooms && classrooms.length > 0) {
+                const cls = classrooms[0];
+                console.log(`[ProfileController] Found classroom: ${JSON.stringify(cls)}`);
+                return {
+                    id: cls.documentId || cls.id,
+                    name: cls.name || cls.classCode // Fallback to code if name missing
+                };
+            }
+            console.log(`[ProfileController] No classroom found for code: ${classCode}`);
+            return null;
+        } catch (error) {
+            console.error('[ProfileController] Error finding classroom:', error.message);
+            return null;
         }
     }
 }
