@@ -78,17 +78,27 @@ class ProfileController extends BaseController {
             Object.keys(payload.data).forEach(key => payload.data[key] === undefined && delete payload.data[key]);
 
             // Auto-link Institute based on collegeEmail domain
+            let linkedCollegeName = null;
             if (payload.data.collegeEmail) {
-                const instituteId = await this._findInstituteByDomain(payload.data.collegeEmail);
-                if (instituteId) {
-                    payload.data.institute = instituteId;
+                const institute = await this._findInstituteByDomain(payload.data.collegeEmail);
+                if (institute) {
+                    payload.data.institute = institute.id; // Uses documentId if available
+                    // Do NOT send 'college' field to Strapi as it causes ValidationError
+                    // payload.data.college = institute.name; 
+                    linkedCollegeName = institute.name;
                     payload.data.isInstituteLinked = true;
-                    console.log(`[ProfileController] Auto-linked to institute ID: ${instituteId}`);
+                    console.log(`[ProfileController] Auto-linked to institute: ${institute.name} (ID: ${institute.id})`);
                 }
             }
 
             const response = await this.api.post('/api/profiles', payload);
             console.log(`[ProfileController] Create success. ID: ${response.data.data?.id}, DocumentID: ${response.data.data?.documentId}`);
+
+            // Ensure college name is in the response if we auto-linked it
+            if (linkedCollegeName && response.data && response.data.data) {
+                response.data.data.college = linkedCollegeName;
+            }
+
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);
@@ -118,21 +128,31 @@ class ProfileController extends BaseController {
             };
 
             // Auto-link Institute based on collegeEmail domain if it's being updated
+            let linkedCollegeName = null;
             if (payload.data.collegeEmail) {
-                const instituteId = await this._findInstituteByDomain(payload.data.collegeEmail);
-                if (instituteId) {
-                    payload.data.institute = instituteId;
-                    // Only set isInstituteLinked if not explicitly passed (or override it? Prompt implies auto-link, keeping explict passed value if exists or default true)
+                const institute = await this._findInstituteByDomain(payload.data.collegeEmail);
+                if (institute) {
+                    payload.data.institute = institute.id;
+                    // Do NOT send 'college' field to Strapi
+                    // payload.data.college = institute.name;
+                    linkedCollegeName = institute.name;
+                    // Only set isInstituteLinked if not explicitly passed
                     if (isInstituteLinked === undefined) {
                         payload.data.isInstituteLinked = true;
                     }
-                    console.log(`[ProfileController] Auto-linked to institute ID: ${instituteId}`);
+                    console.log(`[ProfileController] Auto-linked to institute: ${institute.name} (ID: ${institute.id})`);
                 }
             }
 
             console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
             const response = await this.api.put(`/api/profiles/${profileId}`, payload);
             console.log(`[ProfileController] Update success: ${response.status}`);
+
+            // Ensure college name is in the response if we auto-linked it
+            if (linkedCollegeName && response.data && response.data.data) {
+                response.data.data.college = linkedCollegeName;
+            }
+
             return this.handleSuccess(res, response.data);
         } catch (error) {
             console.error(`[ProfileController] Update failed for ID ${req.params.profileId}`);
@@ -173,7 +193,9 @@ class ProfileController extends BaseController {
             const response = await this.api.get('/api/institutes', {
                 params: {
                     'filters[emaildomain][$eq]': domain,
-                    'fields[0]': 'id' // Optimize to fetch only ID
+                    'fields[0]': 'id',
+                    'fields[1]': 'name',
+                    'fields[2]': 'documentId' // Fetch documentId for Strapi v5 compatibility
                 }
             });
 
@@ -181,7 +203,11 @@ class ProfileController extends BaseController {
             const institutes = response.data.data;
             if (institutes && institutes.length > 0) {
                 console.log(`[ProfileController] Found institute: ${JSON.stringify(institutes[0])}`);
-                return institutes[0].id;
+                const inst = institutes[0];
+                return {
+                    id: inst.documentId || inst.id, // Prefer documentId for Strapi v5
+                    name: inst.name
+                };
             }
             console.log(`[ProfileController] No institute found for domain: ${domain}`);
             return null;
