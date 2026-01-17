@@ -19,6 +19,11 @@ class UserController extends BaseController {
                 params['filters[updatedAt][$gt]'] = lastSync;
             }
 
+            // Allow population of fields
+            if (req.query.populate) {
+                params['populate'] = req.query.populate;
+            }
+
             const response = await this.api.get('/api/users', {
                 params
             });
