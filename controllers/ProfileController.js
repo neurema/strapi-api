@@ -164,22 +164,69 @@ class ProfileController extends BaseController {
             // Auto-link Classroom based on classCode if updating
             const { classOperation } = req.body; // 'add' or 'remove'
             let linkedClassroomName = null;
+
             if (classCode) {
-                const classroom = await this._findClassroomByCode(classCode);
-                if (classroom) {
-                    if (classOperation === 'remove') {
-                        payload.data.classroom = { disconnect: [classroom.id] };
-                        console.log(`[ProfileController] Unlinking classroom: ${classroom.name} (ID: ${classroom.id})`);
-                    } else {
-                        // Default to connect (add)
-                        payload.data.classroom = { connect: [classroom.id] };
-                        linkedClassroomName = classroom.name;
-                        console.log(`[ProfileController] Auto-linking (connect) classroom: ${classroom.name} (ID: ${classroom.id})`);
+                const classroomToLink = await this._findClassroomByCode(classCode);
+                if (classroomToLink) {
+                    const classroomId = classroomToLink.id;
+
+                    // Fetch existing profile to get current classrooms array
+                    // We need to know current state to "append" or "remove" from the array manually
+                    // as implicit connect/disconnect might be behaving unexpectedly or user prefers manual array handling.
+                    console.log(`[ProfileController] Fetching profile ${profileId} to manage classroom relations`);
+                    try {
+                        const currentProfileRes = await this.api.get(`/api/profiles/${profileId}`, {
+                            params: { populate: 'classroom' } // Ensure 'classroom' relation is populated
+                        });
+
+                        const profileData = currentProfileRes.data.data;
+                        // Handle Strapi response structure (attributes vs flat)
+                        const currentClassroomData = profileData.attributes ? profileData.attributes.classroom : profileData.classroom;
+
+                        // Extract existing IDs
+                        let currentIds = [];
+                        if (currentClassroomData && currentClassroomData.data) {
+                            currentIds = currentClassroomData.data.map(c => c.documentId || c.id);
+                        } else if (Array.isArray(currentClassroomData)) {
+                            // If it's already a list of objects (some middleware flattening?)
+                            currentIds = currentClassroomData.map(c => c.documentId || c.id);
+                        }
+
+                        console.log(`[ProfileController] Current Classroom IDs: ${currentIds}`);
+
+                        if (classOperation === 'remove') {
+                            // Remove the ID if present
+                            currentIds = currentIds.filter(id => id !== classroomId && id !== classroomToLink.documentId && id !== classroomToLink.id); // Compare flexibly
+                            console.log(`[ProfileController] Removed ${classroomId}/${classroomToLink.documentId} from list`);
+                        } else {
+                            // Default to Add: Append if not present
+                            // Check existence to avoid dupes (though Set handles it, explicit check is clear)
+                            // Use flexible check for ID vs DocumentID if mixed
+                            const exists = currentIds.some(id => id === classroomId || id === classroomToLink.documentId);
+                            if (!exists) {
+                                currentIds.push(classroomId);
+                                console.log(`[ProfileController] Appended ${classroomId} to list`);
+                            }
+                        }
+
+                        // Update payload with new array of IDs
+                        payload.data.classroom = currentIds;
+
+                        // For logging/response decoration
+                        if (classOperation !== 'remove') {
+                            linkedClassroomName = classroomToLink.name;
+                        }
+
+                    } catch (fetchErr) {
+                        console.error('[ProfileController] Failed to fetch current profile for relation update:', fetchErr.message);
+                        // Fallback: If we can't fetch, maybe we try just setting the single one? 
+                        // But that overwrites. Better to fail safe or log.
                     }
                 }
             } else if (classCode === "") {
-                // Keep the "clear all" logic if explicitly sent empty string, just in case
-                payload.data.classroom = null;
+                // Keep the "clear all" logic if explicitly sent empty string
+                payload.data.classroom = [];
+                console.log(`[ProfileController] Unlinking all classrooms (classCode is empty)`);
             }
 
             console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
