@@ -77,7 +77,18 @@ class ProfileController extends BaseController {
             // Clean undefined values if optional fields are missing
             Object.keys(payload.data).forEach(key => payload.data[key] === undefined && delete payload.data[key]);
 
+            // Auto-link Institute based on collegeEmail domain
+            if (payload.data.collegeEmail) {
+                const instituteId = await this._findInstituteByDomain(payload.data.collegeEmail);
+                if (instituteId) {
+                    payload.data.institute = instituteId;
+                    payload.data.isInstituteLinked = true;
+                    console.log(`[ProfileController] Auto-linked to institute ID: ${instituteId}`);
+                }
+            }
+
             const response = await this.api.post('/api/profiles', payload);
+            console.log(`[ProfileController] Create success. ID: ${response.data.data?.id}, DocumentID: ${response.data.data?.documentId}`);
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);
@@ -106,9 +117,30 @@ class ProfileController extends BaseController {
                 }
             };
 
+            // Auto-link Institute based on collegeEmail domain if it's being updated
+            if (payload.data.collegeEmail) {
+                const instituteId = await this._findInstituteByDomain(payload.data.collegeEmail);
+                if (instituteId) {
+                    payload.data.institute = instituteId;
+                    // Only set isInstituteLinked if not explicitly passed (or override it? Prompt implies auto-link, keeping explict passed value if exists or default true)
+                    if (isInstituteLinked === undefined) {
+                        payload.data.isInstituteLinked = true;
+                    }
+                    console.log(`[ProfileController] Auto-linked to institute ID: ${instituteId}`);
+                }
+            }
+
+            console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
             const response = await this.api.put(`/api/profiles/${profileId}`, payload);
+            console.log(`[ProfileController] Update success: ${response.status}`);
             return this.handleSuccess(res, response.data);
         } catch (error) {
+            console.error(`[ProfileController] Update failed for ID ${req.params.profileId}`);
+            if (error.response) {
+                console.error(`[ProfileController] Status: ${error.response.status}`);
+                console.error(`[ProfileController] URL: ${error.config.url}`);
+                console.error(`[ProfileController] Data:`, JSON.stringify(error.response.data));
+            }
             return this.handleError(res, error);
         }
     }
@@ -122,6 +154,47 @@ class ProfileController extends BaseController {
             return this.handleSuccess(res, response.data);
         } catch (error) {
             return this.handleError(res, error);
+        }
+    }
+
+    // Helper to find institute by domain
+    async _findInstituteByDomain(email) {
+        try {
+            if (!email || !email.includes('@')) return null;
+            const domain = email.split('@')[1].toLowerCase().trim();
+
+            // Assume Strapi has an 'institutes' endpoint or allow filtering on 'institute' collection
+            // Using standard Strapi v4 filter syntax: filters[field][$eq]=value
+            console.log(`[ProfileController] Searching for institute with domain: '${domain}'`);
+
+            // Log the configured base URL to verify environment
+            console.log(`[ProfileController] Using Strapi URL: ${this.api.defaults.baseURL}`);
+
+            const response = await this.api.get('/api/institutes', {
+                params: {
+                    'filters[emaildomain][$eq]': domain,
+                    'fields[0]': 'id' // Optimize to fetch only ID
+                }
+            });
+
+            console.log(`[ProfileController] Search response status: ${response.status}`);
+            const institutes = response.data.data;
+            if (institutes && institutes.length > 0) {
+                console.log(`[ProfileController] Found institute: ${JSON.stringify(institutes[0])}`);
+                return institutes[0].id;
+            }
+            console.log(`[ProfileController] No institute found for domain: ${domain}`);
+            return null;
+        } catch (error) {
+            console.error('[ProfileController] Error finding institute by domain:', error.message);
+            if (error.response) {
+                console.error('[ProfileController] Error Details:', {
+                    status: error.response.status,
+                    url: error.config.url,
+                    data: error.response.data
+                });
+            }
+            return null; // Fail silently, don't block profile creation
         }
     }
 }
