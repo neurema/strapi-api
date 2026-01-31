@@ -99,18 +99,16 @@ class SessionController extends BaseController {
 
     async getSessions(req, res) {
         try {
-            const { userTopicId } = req.query;
+            const { userTopicId, profileId } = req.query;
 
-            if (!userTopicId) {
+            if (!userTopicId && !profileId) {
                 return res.status(400).json({
-                    error: 'userTopicId query parameter is required',
+                    error: 'Either userTopicId or profileId query parameter is required',
                 });
             }
 
             const params = {
                 populate: '*',
-                'filters[user_topic][id][$eq]': userTopicId,
-
                 'fields[0]': 'id',
                 'fields[1]': 'isPaused',
                 'fields[2]': 'scheduledFor',
@@ -120,9 +118,20 @@ class SessionController extends BaseController {
                 'fields[6]': 'scoreActivity',
                 'fields[7]': 'difficultyLevel',
                 'fields[8]': 'stayTopicId',
-
                 'pagination[limit]': '5000',
             };
+
+            if (userTopicId) {
+                params['filters[user_topic][id][$eq]'] = userTopicId;
+            } else if (profileId) {
+                // Bulk fetch for all sessions belonging to this profile via user_topic
+                params['filters[user_topic][profile][id][$eq]'] = profileId;
+                // We also need to populate user_topic to map sessions back to topics on client if needed,
+                // BUT the client might minimal info.
+                // The client sync logic needs user_topic ID to map it.
+                // Let's ensure user_topic is populated or at least its ID is available.
+                // 'populate' is already '*', so user_topic should be there.
+            }
 
             const { lastSync } = req.query;
             if (lastSync) {
