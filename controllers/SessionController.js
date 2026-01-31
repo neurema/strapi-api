@@ -50,10 +50,13 @@ class SessionController extends BaseController {
                 'pagination[limit]': '1',
             };
 
+            // FIXED: Do NOT use lastSync for existence check.
+            /*
             const actualLastSync = lastSync || req.query.lastSync;
             if (actualLastSync) {
                 findParams['filters[updatedAt][$gt]'] = actualLastSync;
             }
+            */
 
             const findResponse = await this.api.get(
                 '/api/study-sessions',

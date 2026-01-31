@@ -26,10 +26,14 @@ class UserTopicController extends BaseController {
                 'pagination[limit]': '1',
             };
 
+            // FIXED: Do NOT use lastSync for existence check.
+            // We want to find if it exists at all, regardless of when it was updated.
+            /*
             const actualLastSync = lastSync || req.query.lastSync;
             if (actualLastSync) {
                 findParams['filters[updatedAt][$gt]'] = actualLastSync;
             }
+            */
 
             const findResponse = await this.api.get('/api/user-topics', { params: findParams });
             const foundData = findResponse.data;
