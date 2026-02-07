@@ -80,6 +80,9 @@ class ProfileController extends BaseController {
 
             // Auto-link Institute based on collegeEmail domain
             let linkedCollegeName = null;
+            let linkedCollegeColor = null;
+            let linkedCollegeLogo = null;
+
             if (payload.data.collegeEmail) {
                 const institute = await this._findInstituteByDomain(payload.data.collegeEmail);
                 if (institute) {
@@ -87,6 +90,9 @@ class ProfileController extends BaseController {
                     // Do NOT send 'college' field to Strapi as it causes ValidationError
                     // payload.data.college = institute.name; 
                     linkedCollegeName = institute.name;
+                    linkedCollegeColor = institute.color;
+                    linkedCollegeLogo = institute.logo;
+
                     payload.data.isInstituteLinked = true;
                     console.log(`[ProfileController] Auto-linked to institute: ${institute.name} (ID: ${institute.id})`);
                 }
@@ -109,6 +115,8 @@ class ProfileController extends BaseController {
             // Ensure college name is in the response if we auto-linked it
             if (linkedCollegeName && response.data && response.data.data) {
                 response.data.data.college = linkedCollegeName;
+                response.data.data.collegeColor = linkedCollegeColor;
+                response.data.data.collegeLogo = linkedCollegeLogo;
             }
             // Ensure classroom name is in response
             if (linkedClassroomName && response.data && response.data.data) {
@@ -146,6 +154,9 @@ class ProfileController extends BaseController {
 
             // Auto-link Institute based on collegeEmail domain if it's being updated
             let linkedCollegeName = null;
+            let linkedCollegeColor = null;
+            let linkedCollegeLogo = null;
+
             if (payload.data.collegeEmail) {
                 const institute = await this._findInstituteByDomain(payload.data.collegeEmail);
                 if (institute) {
@@ -153,6 +164,9 @@ class ProfileController extends BaseController {
                     // Do NOT send 'college' field to Strapi
                     // payload.data.college = institute.name;
                     linkedCollegeName = institute.name;
+                    linkedCollegeColor = institute.color;
+                    linkedCollegeLogo = institute.logo;
+
                     // Only set isInstituteLinked if not explicitly passed
                     if (isInstituteLinked === undefined) {
                         payload.data.isInstituteLinked = true;
@@ -236,6 +250,8 @@ class ProfileController extends BaseController {
             // Ensure college name is in the response if we auto-linked it
             if (linkedCollegeName && response.data && response.data.data) {
                 response.data.data.college = linkedCollegeName;
+                response.data.data.collegeColor = linkedCollegeColor;
+                response.data.data.collegeLogo = linkedCollegeLogo;
             }
             // Ensure classroom name is in response
             if (linkedClassroomName && response.data && response.data.data) {
@@ -284,7 +300,11 @@ class ProfileController extends BaseController {
                     'filters[emaildomain][$eq]': domain,
                     'fields[0]': 'id',
                     'fields[1]': 'name',
-                    'fields[2]': 'documentId' // Fetch documentId for Strapi v5 compatibility
+                    'fields[2]': 'documentId', // Fetch documentId for Strapi v5 compatibility
+                    'fields[3]': 'color',
+                    'populate[logo][fields][0]': 'url',
+                    'populate[logo][fields][1]': 'width',
+                    'populate[logo][fields][2]': 'height'
                 }
             });
 
@@ -293,9 +313,23 @@ class ProfileController extends BaseController {
             if (institutes && institutes.length > 0) {
                 console.log(`[ProfileController] Found institute: ${JSON.stringify(institutes[0])}`);
                 const inst = institutes[0];
+
+                // Extract logo URL if available
+                let logoUrl = null;
+                if (inst.logo) {
+                    // Handle both structure types (array or single object depending on relation type, usually single Media)
+                    // But standard media population in v4/v5 often returns object or array of objects
+                    const logoData = Array.isArray(inst.logo) ? inst.logo[0] : inst.logo;
+                    if (logoData) {
+                        logoUrl = logoData.url;
+                    }
+                }
+
                 return {
                     id: inst.documentId || inst.id, // Prefer documentId for Strapi v5
-                    name: inst.name
+                    name: inst.name,
+                    color: inst.color,
+                    logo: logoUrl
                 };
             }
             console.log(`[ProfileController] No institute found for domain: ${domain}`);
