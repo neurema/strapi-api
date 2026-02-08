@@ -152,6 +152,14 @@ class ProfileController extends BaseController {
                 }
             };
 
+            // Handle explicit Institute unlinking
+            if (isInstituteLinked === false) {
+                payload.data.institute = null;
+                // Since this is a partial update, we must explicitly NULL the field if Strapi supports it,
+                // or 'disconnect' depending on version. Sending null usually works for to-one relations.
+                console.log(`[ProfileController] Unlinking institute (isInstituteLinked=false)`);
+            }
+
             // Auto-link Institute based on collegeEmail domain if it's being updated
             let linkedCollegeName = null;
             let linkedCollegeColor = null;
@@ -244,7 +252,17 @@ class ProfileController extends BaseController {
             }
 
             console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
-            const response = await this.api.put(`/api/profiles/${profileId}`, payload);
+            
+            // Explicitly populate relations in the update response so we return fresh data
+            const response = await this.api.put(`/api/profiles/${profileId}`, payload, {
+                params: {
+                    populate: {
+                        classroom: {
+                            fields: ['name', 'classCode'] // Return just what we need
+                        }
+                    }
+                }
+            });
             console.log(`[ProfileController] Update success: ${response.status}`);
 
             // Ensure college name is in the response if we auto-linked it
@@ -256,6 +274,31 @@ class ProfileController extends BaseController {
             // Ensure classroom name is in response
             if (linkedClassroomName && response.data && response.data.data) {
                 response.data.data.classroomName = linkedClassroomName;
+            }
+
+            // Map populated classroom relation to 'classrooms' list for client consistency
+            if (response.data && response.data.data) {
+                const updatedData = response.data.data;
+                // Structure varies by Strapi version (attributes.classroom.data or direct classroom)
+                const classroomRel = updatedData.attributes ? updatedData.attributes.classroom : updatedData.classroom;
+                if (classroomRel) {
+                    let classesList = [];
+                    if (Array.isArray(classroomRel)) {
+                        classesList = classroomRel;
+                    } else if (classroomRel.data && Array.isArray(classroomRel.data)) {
+                        classesList = classroomRel.data;
+                    }
+                    
+                    // Transform to simple list of maps: { code: ..., name: ... }
+                    response.data.data.classrooms = classesList.map(c => {
+                        const attrs = c.attributes || c;
+                        return {
+                            code: attrs.classCode,
+                            name: attrs.name || attrs.classCode
+                        };
+                    });
+                    console.log(`[ProfileController] Returning ${response.data.data.classrooms.length} classrooms`);
+                }
             }
 
             return this.handleSuccess(res, response.data);
