@@ -449,8 +449,8 @@ class ProfileController extends BaseController {
 
                 // Extract examType (could be object or string, usually object if populated)
                 let examTypeVal = null;
-                if (cls.examType) {
-                    examTypeVal = cls.examType;
+                if (cls.exam) {
+                    examTypeVal = cls.exam;
                 }
 
                 return {
