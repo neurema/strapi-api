@@ -129,6 +129,41 @@ class ProfileController extends BaseController {
         }
     }
 
+    async verifyInstitution(req, res) {
+        try {
+            const { email, classCode } = req.body;
+            const result = {};
+
+            if (email) {
+                const institute = await this._findInstituteByDomain(email);
+                if (institute) {
+                    result.institute = {
+                        name: institute.name,
+                        id: institute.id,
+                        logo: institute.logo,
+                        color: institute.color
+                    };
+                }
+            }
+
+            if (classCode) {
+                const classroom = await this._findClassroomByCode(classCode);
+                if (classroom) {
+                    result.classroom = {
+                        id: classroom.documentId || classroom.id,
+                        name: classroom.name || classroom.classCode,
+                        code: classroom.classCode,
+                        examType: classroom.examType
+                    };
+                }
+            }
+
+            return this.handleSuccess(res, result);
+        } catch (error) {
+            return this.handleError(res, error);
+        }
+    }
+
     async updateProfile(req, res) {
         try {
             const { profileId } = req.params;
