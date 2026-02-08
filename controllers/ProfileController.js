@@ -436,8 +436,9 @@ class ProfileController extends BaseController {
                 params: {
                     'filters[classCode][$eq]': classCode,
                     'fields[0]': 'id',
-                    'fields[1]': 'name', // Assuming classroom has a name
-                    'fields[2]': 'documentId'
+                    'fields[1]': 'name',
+                    'fields[2]': 'documentId',
+                    'populate[0]': 'exam'
                 }
             });
 
@@ -445,9 +446,17 @@ class ProfileController extends BaseController {
             if (classrooms && classrooms.length > 0) {
                 const cls = classrooms[0];
                 console.log(`[ProfileController] Found classroom: ${JSON.stringify(cls)}`);
+
+                // Extract examType (could be object or string, usually object if populated)
+                let examTypeVal = null;
+                if (cls.examType) {
+                    examTypeVal = cls.examType;
+                }
+
                 return {
                     id: cls.documentId || cls.id,
-                    name: cls.name || cls.classCode // Fallback to code if name missing
+                    name: cls.name || cls.classCode,
+                    examType: examTypeVal
                 };
             }
             console.log(`[ProfileController] No classroom found for code: ${classCode}`);
