@@ -164,6 +164,7 @@ class ProfileController extends BaseController {
                 }
             }
 
+            console.log('[ProfileController] verifyInstitution Sending Result:', JSON.stringify(result, null, 2));
             return this.handleSuccess(res, result);
         } catch (error) {
             return this.handleError(res, error);
