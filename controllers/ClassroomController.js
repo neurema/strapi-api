@@ -44,7 +44,7 @@ class ClassroomController extends BaseController {
             const response = await this.api.get('/api/classrooms', {
                 params: {
                     'filters[classCode][$eq]': classCode,
-                    'populate': ['students.user', 'teachers', 'institute', 'topics', 'topics.subject']
+                    'populate': ['students.user', 'teachers', 'institute', 'topics', 'topics.subject', 'exam']
                 }
             });
 
