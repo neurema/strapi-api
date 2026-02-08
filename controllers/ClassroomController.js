@@ -108,9 +108,9 @@ class ClassroomController extends BaseController {
     async updateClassroom(req, res) {
         try {
             const { id } = req.params;
-            const { name } = req.body;
+            const { name, examDate } = req.body;
 
-            console.log('[ClassroomController] Update Request:', { id, name });
+            console.log('[ClassroomController] Update Request:', { id, name, examDate });
 
             if (!id) {
                 return res.status(400).json({ error: 'Classroom ID is required' });
@@ -123,11 +123,17 @@ class ClassroomController extends BaseController {
             // Ideally we should check if the user has permission to update this classroom (is the teacher)
             // But for now, we'll assume the frontend/middleware handles auth, and we just use system token to update
 
-            const response = await this.api.put(`/api/classrooms/${id}`, {
+            const payload = {
                 data: {
                     name
                 }
-            });
+            };
+
+            if (examDate !== undefined) {
+                payload.data.examDate = examDate;
+            }
+
+            const response = await this.api.put(`/api/classrooms/${id}`, payload);
 
             return this.handleSuccess(res, response.data);
         } catch (error) {
