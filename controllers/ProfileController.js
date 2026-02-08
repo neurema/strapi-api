@@ -158,6 +158,7 @@ class ProfileController extends BaseController {
                         id: classroom.documentId || classroom.id,
                         name: classroom.name || classroom.classCode,
                         code: classroom.classCode,
+                        examDate: classroom.examDate,
                         examType: classroom.examType
                     };
                 }
