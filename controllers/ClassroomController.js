@@ -70,6 +70,8 @@ class ClassroomController extends BaseController {
                 return res.status(400).json({ error: 'Name, Class Code, and Institute are required' });
             }
 
+            console.log('[ClassroomController] Raw Create Request Body:', req.body);
+
             // 1. Fetch current user to get their ID
             const userRes = await this.api.get('/api/users/me', {
                 headers: { Authorization: authHeader }
@@ -79,13 +81,21 @@ class ClassroomController extends BaseController {
             const payload = {
                 data: {
                     name,
-                    exam,
                     classCode,
                     institute,
-                    examDate,
                     teachers: [userId]
                 }
             };
+
+            // Conditionally add optional fields to avoid "Invalid relations" or empty string errors
+            if (exam) {
+                payload.data.exam = exam;
+            }
+            if (examDate) {
+                payload.data.examDate = examDate;
+            }
+
+            console.log('[ClassroomController] Sending Payload to Strapi:', JSON.stringify(payload, null, 2));
 
             const response = await this.api.post('/api/classrooms', payload);
             return this.handleSuccess(res, response.data);
