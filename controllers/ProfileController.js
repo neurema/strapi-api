@@ -252,13 +252,13 @@ class ProfileController extends BaseController {
             }
 
             console.log(`[ProfileController] Updating profile at: /api/profiles/${profileId}`);
-            
+
             // Explicitly populate relations in the update response so we return fresh data
             const response = await this.api.put(`/api/profiles/${profileId}`, payload, {
                 params: {
                     populate: {
                         classroom: {
-                            fields: ['name', 'classCode'] // Return just what we need
+                            fields: ['name', 'classCode', 'examType'] // Return just what we need
                         }
                     }
                 }
@@ -288,13 +288,14 @@ class ProfileController extends BaseController {
                     } else if (classroomRel.data && Array.isArray(classroomRel.data)) {
                         classesList = classroomRel.data;
                     }
-                    
+
                     // Transform to simple list of maps: { code: ..., name: ... }
                     response.data.data.classrooms = classesList.map(c => {
                         const attrs = c.attributes || c;
                         return {
                             code: attrs.classCode,
-                            name: attrs.name || attrs.classCode
+                            name: attrs.name || attrs.classCode,
+                            examType: attrs.examType
                         };
                     });
                     console.log(`[ProfileController] Returning ${response.data.data.classrooms.length} classrooms`);
