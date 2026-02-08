@@ -87,8 +87,7 @@ class ProfileController extends BaseController {
                 const institute = await this._findInstituteByDomain(payload.data.collegeEmail);
                 if (institute) {
                     payload.data.institute = institute.id; // Uses documentId if available
-                    // Do NOT send 'college' field to Strapi as it causes ValidationError
-                    // payload.data.college = institute.name; 
+
                     linkedCollegeName = institute.name;
                     linkedCollegeColor = institute.color;
                     linkedCollegeLogo = institute.logo;
@@ -96,6 +95,12 @@ class ProfileController extends BaseController {
                     payload.data.isInstituteLinked = true;
                     console.log(`[ProfileController] Auto-linked to institute: ${institute.name} (ID: ${institute.id})`);
                 }
+            }
+
+            // Remove 'college' field from payload to avoid Strapi validation error
+            // (The field likely doesn't exist in the Profile schema, replaced by 'institute' relation)
+            if (payload.data.college) {
+                delete payload.data.college;
             }
 
             // Auto-link Classroom based on classCode
