@@ -25,6 +25,7 @@ const profileController = new ProfileController();
 
 router.get('/profile/get', (req, res) => profileController.getProfiles(req, res));
 router.post('/profile/create', (req, res) => profileController.createProfile(req, res));
+router.post('/profile/verify-institution', (req, res) => profileController.verifyInstitution(req, res));
 router.put('/profile/update/:profileId', (req, res) => profileController.updateProfile(req, res));
 router.delete('/profile/delete/:profileId', (req, res) => profileController.deleteProfile(req, res));
 
