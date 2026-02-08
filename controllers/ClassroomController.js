@@ -59,7 +59,7 @@ class ClassroomController extends BaseController {
 
     async createClassroom(req, res) {
         try {
-            const { name, exam, classCode, institute } = req.body;
+            const { name, exam, classCode, institute, examDate } = req.body;
             const authHeader = req.headers.authorization;
 
             if (!authHeader) {
@@ -82,6 +82,7 @@ class ClassroomController extends BaseController {
                     exam,
                     classCode,
                     institute,
+                    examDate,
                     teachers: [userId]
                 }
             };
