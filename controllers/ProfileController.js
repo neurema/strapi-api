@@ -293,7 +293,7 @@ class ProfileController extends BaseController {
                 params: {
                     populate: {
                         classroom: {
-                            fields: ['name', 'classCode', 'examType'] // Return just what we need
+                            populate: 'exam' // Populate the 'exam' relation inside classroom
                         }
                     }
                 }
