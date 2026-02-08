@@ -465,6 +465,7 @@ class ProfileController extends BaseController {
                 return {
                     id: cls.documentId || cls.id,
                     name: cls.name || cls.classCode,
+                    examDate: cls.examDate,
                     examType: examTypeVal
                 };
             }
