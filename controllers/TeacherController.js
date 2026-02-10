@@ -95,6 +95,7 @@ class TeacherController extends BaseController {
                         await this.api.put(`/api/user-topics/${existing.documentId}`, {
                             data: {
                                 nextSession: todayISO,
+                                teacherInstructions: req.body.teacherInstructions || '' // Update instructions
                             }
                         });
                         userTopicDocId = existing.documentId;
@@ -110,124 +111,126 @@ class TeacherController extends BaseController {
                                 memoryLocation: 'New', // Default to New
                                 revisionsDone: 0,
                                 timeRemaining: 0,
-                                timeTotal: 0
+                                timeTotal: 0,
+                                teacherInstructions: req.body.teacherInstructions || '' // Add instructions
                             }
+                        }
                         });
-                        userTopicDocId = createResponse.data.data.documentId;
-                        createdCount++;
-                    }
+                    userTopicDocId = createResponse.data.data.documentId;
+                    createdCount++;
+                }
 
                     // 3. Ensure Session Exists for Today
                     if (userTopicDocId) {
-                        const sessionParams = {
-                            'filters[user_topic][documentId][$eq]': userTopicDocId,
-                            'filters[scheduledFor][$eq]': todayISO,
-                            'pagination[limit]': '1',
-                        };
-                        const sessionRes = await this.api.get('/api/study-sessions', { params: sessionParams });
-                        const existingSession = sessionRes.data.data && sessionRes.data.data.length > 0;
+                    const sessionParams = {
+                        'filters[user_topic][documentId][$eq]': userTopicDocId,
+                        'filters[scheduledFor][$eq]': todayISO,
+                        'pagination[limit]': '1',
+                    };
+                    const sessionRes = await this.api.get('/api/study-sessions', { params: sessionParams });
+                    const existingSession = sessionRes.data.data && sessionRes.data.data.length > 0;
 
-                        if (!existingSession) {
-                            console.log(`[TeacherController] Creating Session for UserTopic ${userTopicDocId}`);
-                            await this.api.post('/api/study-sessions', {
-                                data: {
-                                    user_topic: userTopicDocId,
-                                    scheduledFor: todayISO,
-                                    stayTopicId: topicId, // Storing the Topic Document ID
-                                    isPaused: false,
-                                    timeAllotted: 0,
-                                    timeTakenForActivity: 0,
-                                    timeTakenForRevision: 0,
-                                    difficultyLevel: 'Medium' // Default
-                                }
-                            });
-                        }
+                    if (!existingSession) {
+                        console.log(`[TeacherController] Creating Session for UserTopic ${userTopicDocId}`);
+                        await this.api.post('/api/study-sessions', {
+                            data: {
+                                user_topic: userTopicDocId,
+                                scheduledFor: todayISO,
+                                stayTopicId: topicId, // Storing the Topic Document ID
+                                isPaused: false,
+                                timeAllotted: 0,
+                                timeTakenForActivity: 0,
+                                timeTakenForRevision: 0,
+                                difficultyLevel: 'Medium' // Default
+                            }
+                        });
                     }
-
-                } catch (upsertErr) {
-                    console.error('[TeacherController] Upsert/Session Error for student ' + profileDocId, upsertErr.response?.data || upsertErr.message);
                 }
+
+            } catch (upsertErr) {
+                console.error('[TeacherController] Upsert/Session Error for student ' + profileDocId, upsertErr.response?.data || upsertErr.message);
             }
+        }
 
             return this.handleSuccess(res, {
-                message: 'Assignment complete',
-                stats: {
-                    totalStudents: students.length,
-                    created: createdCount,
-                    updated: updatedCount
-                }
-            });
+            message: 'Assignment complete',
+            stats: {
+                totalStudents: students.length,
+                created: createdCount,
+                updated: updatedCount
+            }
+        });
 
-        } catch (error) {
-            console.error('[TeacherController] Error:', error.response?.data || error.message);
-            return this.handleError(res, error);
-        }
+    } catch(error) {
+        console.error('[TeacherController] Error:', error.response?.data || error.message);
+        return this.handleError(res, error);
     }
+}
 
     async getTopicStats(req, res) {
-        try {
-            const { classId, topicId } = req.query;
+    try {
+        const { classId, topicId } = req.query;
 
-            if (!classId || !topicId) {
-                return res.status(400).json({ error: 'classId and topicId are required' });
-            }
-
-            // 1. Fetch Class Students
-            const classResponse = await this.api.get(`/api/classrooms/${classId}`, {
-                params: {
-                    'populate[students][fields][0]': 'documentId',
-                }
-            });
-
-            const classroom = classResponse.data.data;
-            if (!classroom || !classroom.students) {
-                return this.handleSuccess(res, { stats: {} });
-            }
-
-            const studentDocIds = classroom.students.map(s => s.documentId);
-
-            if (studentDocIds.length === 0) {
-                return this.handleSuccess(res, { stats: {} });
-            }
-
-            // 2. Fetch UserTopics for these students and topic
-            // We might need to iterate or use 'in' filter if supported.
-            // Strapi filter 'in' supports array.
-            const userTopicsParams = {
-                'filters[topic][documentId][$eq]': topicId,
-                'filters[profile][documentId][$in]': studentDocIds,
-                'fields[0]': 'memoryLocation',
-                'pagination[limit]': '5000',
-            };
-
-            const utResponse = await this.api.get('/api/user-topics', { params: userTopicsParams });
-            const userTopics = utResponse.data.data;
-
-            // 3. Aggregate Stats
-            const stats = {
-                'New': 0,
-                'Review': 0,
-                'Short-term': 0,
-                'Long-term': 0,
-                'Transition': 0
-            };
-
-            userTopics.forEach(ut => {
-                const loc = ut.memoryLocation || 'New';
-                if (stats[loc] !== undefined) {
-                    stats[loc]++;
-                } else {
-                    stats[loc] = (stats[loc] || 0) + 1;
-                }
-            });
-
-            return this.handleSuccess(res, { stats, totalStudents: studentDocIds.length, assignedCount: userTopics.length });
-
-        } catch (error) {
-            console.error('[TeacherController] Stats Error:', error.response?.data || error.message);
-            return this.handleError(res, error);
+        if (!classId || !topicId) {
+            return res.status(400).json({ error: 'classId and topicId are required' });
         }
+
+        // 1. Fetch Class Students
+        const classResponse = await this.api.get(`/api/classrooms/${classId}`, {
+            params: {
+                'populate[students][fields][0]': 'documentId',
+            }
+        });
+
+        const classroom = classResponse.data.data;
+        if (!classroom || !classroom.students) {
+            return this.handleSuccess(res, { stats: {} });
+        }
+
+        const studentDocIds = classroom.students.map(s => s.documentId);
+
+        if (studentDocIds.length === 0) {
+            return this.handleSuccess(res, { stats: {} });
+        }
+
+        // 2. Fetch UserTopics for these students and topic
+        // We might need to iterate or use 'in' filter if supported.
+        // Strapi filter 'in' supports array.
+        const userTopicsParams = {
+            'filters[topic][documentId][$eq]': topicId,
+            'filters[profile][documentId][$in]': studentDocIds,
+            'fields[0]': 'memoryLocation',
+            'pagination[limit]': '5000',
+        };
+
+        const utResponse = await this.api.get('/api/user-topics', { params: userTopicsParams });
+        const userTopics = utResponse.data.data;
+
+        // 3. Aggregate Stats
+        const stats = {
+            'New': 0,
+            'Review': 0,
+            'Short-term': 0,
+            'Long-term': 0,
+            'Transition': 0
+        };
+
+        userTopics.forEach(ut => {
+            const loc = ut.memoryLocation || 'New';
+            if (stats[loc] !== undefined) {
+                stats[loc]++;
+            } else {
+                stats[loc] = (stats[loc] || 0) + 1;
+            }
+        });
+
+        return this.handleSuccess(res, { stats, totalStudents: studentDocIds.length, assignedCount: userTopics.length });
+
+    } catch (error) {
+        console.error('[TeacherController] Stats Error:', error.response?.data || error.message);
+        return this.handleError(res, error);
     }
+}
 }
 
 module.exports = TeacherController;
