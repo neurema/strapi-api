@@ -199,6 +199,7 @@ class TeacherController extends BaseController {
                 'filters[topic][documentId][$eq]': topicId,
                 'filters[profile][documentId][$in]': studentDocIds,
                 'fields[0]': 'memoryLocation',
+                'fields[1]': 'teacherInstructions',
                 'pagination[limit]': '5000',
             };
 
@@ -223,10 +224,80 @@ class TeacherController extends BaseController {
                 }
             });
 
-            return this.handleSuccess(res, { stats, totalStudents: studentDocIds.length, assignedCount: userTopics.length });
+            // Extract instructions from the first user topic (assuming all are same for a class assignment)
+            const instructions = userTopics.length > 0 ? userTopics[0].teacherInstructions : '';
+
+            return this.handleSuccess(res, { stats, totalStudents: studentDocIds.length, assignedCount: userTopics.length, teacherInstructions: instructions });
 
         } catch (error) {
             console.error('[TeacherController] Stats Error:', error.response?.data || error.message);
+            return this.handleError(res, error);
+        }
+    }
+
+    async updateTopicInstructions(req, res) {
+        try {
+            const { classId, topicId, teacherInstructions } = req.body;
+
+            if (!classId || !topicId) {
+                return res.status(400).json({ error: 'classId and topicId are required' });
+            }
+
+            console.log(`[TeacherController] Updating instructions for topic ${topicId} in class ${classId}`);
+
+            // 1. Fetch Class Students
+            const classResponse = await this.api.get(`/api/classrooms/${classId}`, {
+                params: {
+                    'populate[students][fields][0]': 'documentId',
+                }
+            });
+
+            const classroom = classResponse.data.data;
+            if (!classroom || !classroom.students || classroom.students.length === 0) {
+                return this.handleSuccess(res, { message: 'No students found to update.', count: 0 });
+            }
+
+            const studentDocIds = classroom.students.map(s => s.documentId);
+
+            // 2. Find UserTopics for these students/topic
+            const findParams = {
+                'filters[topic][documentId][$eq]': topicId,
+                'filters[profile][documentId][$in]': studentDocIds,
+                'pagination[limit]': '5000', // Update all
+                'fields[0]': 'documentId'
+            };
+
+            const utResponse = await this.api.get('/api/user-topics', { params: findParams });
+            const userTopics = utResponse.data.data;
+
+            if (!userTopics || userTopics.length === 0) {
+                return this.handleSuccess(res, { message: 'No assigned topics found to update.', count: 0 });
+            }
+
+            // 3. Update each UserTopic
+            // Parallel execution for speed, but consider batching if many students
+            let updatedCount = 0;
+            const updatePromises = userTopics.map(ut => {
+                return this.api.put(`/api/user-topics/${ut.documentId}`, {
+                    data: {
+                        teacherInstructions: teacherInstructions || ''
+                    }
+                }).then(() => {
+                    updatedCount++;
+                }).catch(err => {
+                    console.error(`[TeacherController] Failed to update instructions for UT ${ut.documentId}:`, err.message);
+                });
+            });
+
+            await Promise.all(updatePromises);
+
+            return this.handleSuccess(res, {
+                message: 'Instructions updated successfully',
+                updatedCount
+            });
+
+        } catch (error) {
+            console.error('[TeacherController] Update Instructions Error:', error.response?.data || error.message);
             return this.handleError(res, error);
         }
     }
