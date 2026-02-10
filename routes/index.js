@@ -78,5 +78,6 @@ router.post('/classroom/create', (req, res) => classroomController.createClassro
 router.put('/classroom/update/:id', (req, res) => classroomController.updateClassroom(req, res));
 router.post('/teacher/assign-topic', (req, res) => teacherController.assignTopicToClass(req, res));
 router.get('/teacher/topic-stats', (req, res) => teacherController.getTopicStats(req, res));
+router.put('/teacher/topic-instructions', (req, res) => teacherController.updateTopicInstructions(req, res));
 
 module.exports = router;
