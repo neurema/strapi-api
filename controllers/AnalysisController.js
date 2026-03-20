@@ -7,6 +7,17 @@ class AnalysisController extends BaseController {
 
     async createAnalysis(req, res) {
         try {
+            const toText = (value) => {
+                if (value === undefined || value === null) return undefined;
+                if (typeof value === 'string') return value;
+                if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+                try {
+                    return JSON.stringify(value);
+                } catch (_) {
+                    return String(value);
+                }
+            };
+
             const {
                 weakPoints,
                 blindSpots,
@@ -14,25 +25,26 @@ class AnalysisController extends BaseController {
                 metrics,
                 areaOfImprovement,
                 transcription,
-                study_session, // Link to a session if provided
+                session, // Client alias
+                study_session, // Actual schema relation
             } = req.body;
+
+            const sessionRelation = study_session ?? session;
+            if (sessionRelation === undefined || sessionRelation === null) {
+                return res.status(400).json({ error: 'study_session is required' });
+            }
 
             const payload = {
                 data: {
-                    weakPoints,
-                    blindSpots,
-                    strongPoints,
-                    metrics,
-                    areaOfImprovement,
-                    transcription,
-                    study_session,
+                    weakPoints: toText(weakPoints) ?? '',
+                    blindSpots: toText(blindSpots) ?? '',
+                    strongPoints: toText(strongPoints) ?? '',
+                    metrics: toText(metrics) ?? '',
+                    areaOfImprovement: toText(areaOfImprovement) ?? '',
+                    transcription: toText(transcription) ?? '',
+                    study_session: sessionRelation,
                 },
             };
-
-            // Remove undefined keys to avoid sending nulls unless intended
-            Object.keys(payload.data).forEach(
-                key => payload.data[key] === undefined && delete payload.data[key]
-            );
 
             const response = await this.api.post('/api/analyses', payload);
 
@@ -46,7 +58,7 @@ class AnalysisController extends BaseController {
     async getAnalyses(req, res) {
         try {
             // Pass through all query parameters (filters, populate, etc.)
-            // Example usage: /analysis/get?filters[session][id]=123&populate=*
+            // Example usage: /analysis/get?filters[study_session][id]=123&populate=*
             const { sessionId, ...otherParams } = req.query;
 
             const params = {
