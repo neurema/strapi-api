@@ -135,7 +135,6 @@ class TeacherController extends BaseController {
                                 data: {
                                     user_topic: userTopicDocId,
                                     scheduledFor: todayISO,
-                                    stayTopicId: topicId, // Storing the Topic Document ID
                                     isPaused: false,
                                     timeAllotted: 0,
                                     timeTakenForActivity: 0,
