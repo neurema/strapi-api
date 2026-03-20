@@ -5,51 +5,6 @@ class UserTopicController extends BaseController {
         super('content'); // Uses CONTENT_API_TOKEN
     }
 
-    async resolveStayTopicIdFromTopic(topicId) {
-        const response = await this.api.get(`/api/topics/${topicId}`, {
-            params: {
-                'fields[0]': 'stayTopicId',
-            },
-        });
-
-        const topic = response?.data?.data;
-        const stayTopicId = topic?.stayTopicId;
-
-        if (!stayTopicId) {
-            throw new Error(`Topic ${topicId} is missing stayTopicId`);
-        }
-
-        return stayTopicId;
-    }
-
-    async ensureUserTopicStayTopicId(userTopic) {
-        const currentStayTopicId = userTopic?.stayTopicId;
-        if (currentStayTopicId) {
-            return currentStayTopicId;
-        }
-
-        const topicRelation = userTopic?.topic;
-        const topicId = topicRelation?.id;
-        if (!topicId) {
-            throw new Error(`User topic ${userTopic?.id || userTopic?.documentId || 'unknown'} is missing topic relation`);
-        }
-
-        const stayTopicId = await this.resolveStayTopicIdFromTopic(topicId);
-        const documentId = userTopic?.documentId;
-        if (!documentId) {
-            throw new Error(`User topic ${userTopic?.id || 'unknown'} is missing documentId`);
-        }
-
-        await this.api.put(`/api/user-topics/${documentId}`, {
-            data: {
-                stayTopicId,
-            },
-        });
-
-        userTopic.stayTopicId = stayTopicId;
-        return stayTopicId;
-    }
-
     async findOrCreateUserTopic(req, res) {
         try {
             const {
@@ -84,13 +39,9 @@ class UserTopicController extends BaseController {
             const foundData = findResponse.data;
 
             if (foundData.data && foundData.data.length > 0) {
-                const existingUserTopic = foundData.data[0];
-                await this.ensureUserTopicStayTopicId(existingUserTopic);
                 // Found existing, return it
                 return this.handleSuccess(res, foundData);
             }
-
-            const stayTopicId = await this.resolveStayTopicIdFromTopic(topicId);
 
             // 2. Create new user-topic
             const payload = {
@@ -103,7 +54,6 @@ class UserTopicController extends BaseController {
                     revisionsDone,
                     topic: topicId,
                     profile: profileId,
-                    stayTopicId,
                 }
             };
 
@@ -119,73 +69,9 @@ class UserTopicController extends BaseController {
     }
 
     async backfillStayTopicIds(req, res) {
-        try {
-            const { profileId } = req.body || {};
-            const params = {
-                'fields[0]': 'documentId',
-                'fields[1]': 'stayTopicId',
-                'populate[topic][fields][0]': 'id',
-                'populate[topic][fields][1]': 'stayTopicId',
-                'pagination[limit]': '5000',
-            };
-
-            if (profileId) {
-                params['filters[profile][id][$eq]'] = profileId;
-            }
-
-            const response = await this.api.get('/api/user-topics', { params });
-            const userTopics = response?.data?.data || [];
-
-            let scanned = 0;
-            let updated = 0;
-            let skipped = 0;
-            const failures = [];
-
-            for (const userTopic of userTopics) {
-                scanned += 1;
-                try {
-                    const flatStayTopicId = userTopic?.stayTopicId;
-                    const topicStayTopicId = userTopic?.topic?.stayTopicId;
-
-                    if (flatStayTopicId) {
-                        skipped += 1;
-                        continue;
-                    }
-
-                    if (!topicStayTopicId) {
-                        skipped += 1;
-                        failures.push({
-                            userTopicId: userTopic?.id,
-                            documentId: userTopic?.documentId,
-                            error: 'Missing topic.stayTopicId',
-                        });
-                        continue;
-                    }
-
-                    await this.api.put(`/api/user-topics/${userTopic.documentId}`, {
-                        data: {
-                            stayTopicId: topicStayTopicId,
-                        },
-                    });
-                    updated += 1;
-                } catch (error) {
-                    failures.push({
-                        userTopicId: userTopic?.id,
-                        documentId: userTopic?.documentId,
-                        error: error.response?.data?.error?.message || error.message,
-                    });
-                }
-            }
-
-            return this.handleSuccess(res, {
-                scanned,
-                updated,
-                skipped,
-                failures,
-            });
-        } catch (error) {
-            return this.handleError(res, error);
-        }
+        return this.handleSuccess(res, {
+            message: 'Use the backfill script or app-side scheduler repair for stayTopicId.',
+        });
     }
 
     async getUserTopics(req, res) {
@@ -208,11 +94,9 @@ class UserTopicController extends BaseController {
                 'fields[4]': 'timeRemaining',
                 'fields[5]': 'revisionsDone',
                 'fields[6]': 'documentId',
-                'fields[7]': 'stayTopicId',
                 'populate[topic][fields][0]': 'id',
-                'populate[topic][fields][1]': 'stayTopicId',
-                'populate[topic][fields][2]': 'name',
-                'populate[topic][fields][3]': 'section',
+                'populate[topic][fields][1]': 'name',
+                'populate[topic][fields][2]': 'section',
                 'populate[sessions][fields][0]': 'id',
                 'filters[profile][id][$eq]': profileId,
                 'pagination[limit]': '5000',

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "backfill:stay-topic-id": "node scripts/backfill-user-topic-stay-topic-id.js"
   },
   "keywords": [],
   "author": "",
