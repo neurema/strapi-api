@@ -5,25 +5,6 @@ class SessionController extends BaseController {
         super('content'); // Uses CONTENT_API_TOKEN
     }
 
-    async resolveStayTopicIdFromUserTopic(userTopicId) {
-        const response = await this.api.get(`/api/user-topics/${userTopicId}`, {
-            params: {
-                'populate[topic][fields][0]': 'id',
-                'populate[topic][fields][1]': 'stayTopicId',
-            },
-        });
-
-        const userTopic = response?.data?.data;
-        const topic = userTopic?.topic;
-        const stayTopicId = topic?.stayTopicId;
-
-        if (!stayTopicId) {
-            throw new Error(`User topic ${userTopicId} is missing topic.stayTopicId`);
-        }
-
-        return stayTopicId;
-    }
-
     async findOrCreateSession(req, res) {
         try {
             const {
@@ -46,7 +27,6 @@ class SessionController extends BaseController {
                     error: 'userTopicId and scheduledFor are required',
                 });
             }
-            const stayId = await this.resolveStayTopicIdFromUserTopic(userTopicId);
 
             // 1️⃣ Check if session exists
             const findParams = {
@@ -84,7 +64,6 @@ class SessionController extends BaseController {
                     scoreActivity,
                     difficultyLevel,
                     user_topic: userTopicId,
-                    stayTopicId: stayId,
                 },
             };
 
@@ -125,7 +104,6 @@ class SessionController extends BaseController {
                 'fields[5]': 'timeAllotted',
                 'fields[6]': 'scoreActivity',
                 'fields[7]': 'difficultyLevel',
-                'fields[8]': 'stayTopicId',
                 'pagination[limit]': '5000',
             };
 

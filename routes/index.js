@@ -49,6 +49,7 @@ const userTopicController = new UserTopicController();
 
 router.post('/user-topic/find-or-create', (req, res) => userTopicController.findOrCreateUserTopic(req, res));
 router.get('/user-topic/get', (req, res) => userTopicController.getUserTopics(req, res));
+router.post('/user-topic/backfill-stay-topic-id', (req, res) => userTopicController.backfillStayTopicIds(req, res));
 router.delete('/user-topic/delete/:userTopicId', (req, res) => userTopicController.deleteUserTopic(req, res));
 
 // Topic Routes
