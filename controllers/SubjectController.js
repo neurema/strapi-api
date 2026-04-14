@@ -22,7 +22,7 @@ class SubjectController extends BaseController {
     }
     async getSubjects(req, res) {
         try {
-            const { exam, ownerProfile, lastSync } = req.query;
+            const { exam, lastSync } = req.query;
             if (!exam) {
                 return res.status(400).json({ error: 'Exam query parameter is required' });
             }
@@ -38,13 +38,6 @@ class SubjectController extends BaseController {
 
             if (lastSync) {
                 params['filters[updatedAt][$gt]'] = lastSync;
-            }
-
-            if (ownerProfile) {
-                params['populate[topics][filters][$or][0][ownerProfile][documentId][$null]'] = true;
-                params['populate[topics][filters][$or][1][ownerProfile][documentId][$eq]'] = ownerProfile;
-            } else {
-                params['populate[topics][filters][ownerProfile][documentId][$null]'] = true;
             }
 
             const response = await this.api.get('/api/subjects', { params });

@@ -46,7 +46,23 @@ class AnalysisController extends BaseController {
                 },
             };
 
-            const response = await this.api.post('/api/analyses', payload);
+            const existingResponse = await this.api.get('/api/analyses', {
+                params: {
+                    'filters[study_session][id][$eq]': sessionRelation,
+                    'pagination[limit]': '1',
+                },
+            });
+
+            const existingItems = existingResponse?.data?.data || [];
+            let response;
+
+            if (existingItems.length > 0) {
+                const existing = existingItems[0];
+                const targetId = existing?.documentId || existing?.id;
+                response = await this.api.put(`/api/analyses/${targetId}`, payload);
+            } else {
+                response = await this.api.post('/api/analyses', payload);
+            }
 
             return this.handleSuccess(res, response.data);
 
